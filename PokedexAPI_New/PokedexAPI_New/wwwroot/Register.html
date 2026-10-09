@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pokédex - Create Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1123;
+      --card-bg: #1a1f3c;
+      --border: #2e3560;
+      --yellow: #f6c700;
+      --red: #e63946;
+      --text: #e8eaf6;
+      --muted: #7986cb;
+      --green: #27ae60;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Exo 2', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bg-balls {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    }
+    .ball {
+      position: absolute; border-radius: 50%; opacity: 0.07;
+      animation: floatBall linear infinite;
+    }
+    .ball:nth-child(1) { width:300px;height:300px;background:var(--yellow);left:-80px;top:10%;animation-duration:18s; }
+    .ball:nth-child(2) { width:200px;height:200px;background:var(--red);right:-60px;top:30%;animation-duration:14s;animation-delay:-4s; }
+    .ball:nth-child(3) { width:150px;height:150px;background:#7986cb;left:30%;bottom:-50px;animation-duration:20s;animation-delay:-8s; }
+    .ball:nth-child(4) { width:100px;height:100px;background:var(--yellow);right:20%;top:-30px;animation-duration:12s;animation-delay:-2s; }
+    .ball:nth-child(5) { width:80px;height:80px;background:var(--red);left:15%;top:60%;animation-duration:16s;animation-delay:-6s; }
+    @keyframes floatBall {
+      0%   { transform: translateY(0) scale(1); }
+      50%  { transform: translateY(-40px) scale(1.05); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .pokeball-deco {
+      position: fixed; width: 420px; height: 420px; border-radius: 50%;
+      border: 40px solid rgba(246,199,0,0.04);
+      right: -120px; bottom: -120px;
+      pointer-events: none; z-index: 0;
+      animation: spinSlow 30s linear infinite;
+    }
+    @keyframes spinSlow { to { transform: rotate(360deg); } }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 28px;
+      width: 100%; max-width: 440px;
+      padding: 24px;
+      animation: fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo { font-family: 'Press Start 2P', monospace; font-size: 2rem; letter-spacing: 2px; text-align: center; }
+    .logo .poke { color: #fff; text-shadow: 4px 4px 0 #333; }
+    .logo .dex  { color: var(--yellow); text-shadow: 4px 4px 0 #7a5c00; }
+    .logo-sub { font-size: 0.72rem; color: var(--muted); text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-top: -10px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--green), var(--yellow), var(--green));
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .card-title { font-size: 1.3rem; font-weight: 700; text-align: center; margin-bottom: 6px; color: var(--text); }
+    .card-subtitle { font-size: 0.8rem; color: var(--muted); text-align: center; margin-bottom: 28px; }
+
+    .input-group { margin-bottom: 18px; }
+    .input-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+
+    .input-wrap { position: relative; }
+    .input-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; pointer-events: none; opacity: 0.5; }
+    .input-wrap input {
+      width: 100%; background: #252b50;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 13px 14px 13px 40px;
+      color: var(--text); font-family: 'Exo 2', sans-serif;
+      font-size: 0.95rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrap input:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(246,199,0,0.1); }
+    .input-wrap input::placeholder { color: #4a5080; }
+    .input-wrap input.invalid { border-color: var(--red); }
+    .input-wrap input.valid   { border-color: var(--green); }
+
+    .toggle-pw { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+    .toggle-pw:hover { color: var(--yellow); }
+
+    .field-error { font-size: 0.75rem; color: var(--red); margin-top: 5px; display: none; }
+    .field-error.show { display: block; }
+
+    /* password strength bar */
+    .strength-wrap { margin-top: 8px; }
+    .strength-bar-bg { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .strength-bar { height: 100%; border-radius: 2px; width: 0%; transition: width 0.3s, background 0.3s; }
+    .strength-label { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+
+    .btn-register {
+      width: 100%;
+      background: linear-gradient(135deg, var(--green), #1e8449);
+      color: #fff; border: none; border-radius: 10px;
+      padding: 14px; font-family: 'Exo 2', sans-serif;
+      font-weight: 700; font-size: 1rem; letter-spacing: 1px;
+      cursor: pointer; margin-top: 8px;
+      transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+      box-shadow: 0 4px 16px rgba(39,174,96,0.35);
+      position: relative; overflow: hidden;
+    }
+    .btn-register:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(39,174,96,0.45); filter: brightness(1.1); }
+    .btn-register:active { transform: translateY(0); }
+    .btn-register.loading { pointer-events: none; opacity: 0.7; }
+    .btn-register .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto; }
+    .btn-register.loading .btn-text { display: none; }
+    .btn-register.loading .spinner  { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider span { flex: 1; height: 1px; background: var(--border); }
+    .divider p { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+
+    .login-prompt { text-align: center; font-size: 0.82rem; color: var(--muted); }
+    .login-prompt a { color: var(--yellow); font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+    .login-prompt a:hover { opacity: 0.8; }
+
+    .card-footer { text-align: center; margin-top: 20px; }
+    .card-footer a { color: var(--muted); font-size: 0.82rem; text-decoration: none; transition: color 0.2s; }
+    .card-footer a:hover { color: var(--yellow); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1f3c; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 13px 24px;
+      font-family: 'Exo 2', sans-serif; font-size: 0.9rem;
+      font-weight: 600; color: var(--text); z-index: 999;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s;
+      opacity: 0; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--green); }
+    .toast.error   { border-color: var(--red); }
+    .toast.info    { border-color: var(--yellow); }
+    .toast-icon { font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+<div class="bg-balls">
+  <div class="ball"></div><div class="ball"></div><div class="ball"></div>
+  <div class="ball"></div><div class="ball"></div>
+</div>
+<div class="pokeball-deco"></div>
+
+<div class="wrapper">
+
+  <div>
+    <div class="logo"><span class="poke">Poké</span><span class="dex">dex</span></div>
+    <div class="logo-sub">New Trainer</div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Create Account</h2>
+    <p class="card-subtitle">Join the Pokédex and start your journey!</p>
+
+    <div class="input-group">
+      <label for="username">Trainer Name</label>
+      <div class="input-wrap">
+        <span class="icon">🎮</span>
+        <input type="text" id="username" placeholder="e.g. AshKetchum" autocomplete="username"/>
+      </div>
+      <div class="field-error" id="usernameErr">Trainer name is required.</div>
+    </div>
+
+    <div class="input-group">
+      <label for="email">Email <span style="color:#4a5080;font-size:0.65rem;">(optional)</span></label>
+      <div class="input-wrap">
+        <span class="icon">📧</span>
+        <input type="email" id="email" placeholder="trainer@pokemon.com" autocomplete="email"/>
+      </div>
+      <div class="field-error" id="emailErr">Please enter a valid email.</div>
+    </div>
+
+    <div class="input-group">
+      <label for="password">Password</label>
+      <div class="input-wrap">
+        <span class="icon">🔒</span>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="new-password"/>
+        <button class="toggle-pw" type="button" id="togglePw">👁️</button>
+      </div>
+      <div class="strength-wrap">
+        <div class="strength-bar-bg"><div class="strength-bar" id="strengthBar"></div></div>
+        <div class="strength-label" id="strengthLabel"></div>
+      </div>
+      <div class="field-error" id="passwordErr">Password must be at least 6 characters.</div>
+    </div>
+
+    <div class="input-group">
+      <label for="confirmPassword">Confirm Password</label>
+      <div class="input-wrap">
+        <span class="icon">🔑</span>
+        <input type="password" id="confirmPassword" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <div class="field-error" id="confirmErr">Passwords do not match.</div>
+    </div>
+
+    <button class="btn-register" id="registerBtn" type="button">
+      <span class="btn-text">Create Account</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="divider"><span></span><p>already have an account?</p><span></span></div>
+    <div class="login-prompt"><a href="login.html">Sign in here</a></div>
+
+    <div class="card-footer">
+      <a href="index.html">← Back to Pokémon Grid</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  // ── TOAST ──
+  let toastTimer;
+  function showToast(msg, type = 'info') {
+    const toast = document.getElementById('toast');
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').textContent = icons[type] || 'ℹ️';
+    toast.className = `toast ${type}`;
+    clearTimeout(toastTimer);
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  // ── PASSWORD TOGGLE ──
+  document.getElementById('togglePw').addEventListener('click', () => {
+    const pw = document.getElementById('password');
+    const btn = document.getElementById('togglePw');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+    btn.textContent = pw.type === 'password' ? '👁️' : '🙈';
+  });
+
+  // ── PASSWORD STRENGTH ──
+  document.getElementById('password').addEventListener('input', () => {
+    const val = document.getElementById('password').value;
+    const bar = document.getElementById('strengthBar');
+    const lbl = document.getElementById('strengthLabel');
+    let strength = 0;
+    if (val.length >= 6)  strength++;
+    if (val.length >= 10) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+    const levels = [
+      { pct: '0%',   color: 'transparent', label: '' },
+      { pct: '25%',  color: '#e63946',     label: 'Weak' },
+      { pct: '50%',  color: '#f39c12',     label: 'Fair' },
+      { pct: '75%',  color: '#f6c700',     label: 'Good' },
+      { pct: '90%',  color: '#27ae60',     label: 'Strong' },
+      { pct: '100%', color: '#1abc9c',     label: 'Very Strong 💪' },
+    ];
+    const l = levels[Math.min(strength, 5)];
+    bar.style.width = l.pct;
+    bar.style.background = l.color;
+    lbl.textContent = l.label;
+    lbl.style.color = l.color;
+  });
+
+  // ── VALIDATION ──
+  function validate() {
+    const username = document.getElementById('username').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm  = document.getElementById('confirmPassword').value;
+    let valid = true;
+
+    const setErr = (id, errId, condition) => {
+      const el  = document.getElementById(id);
+      const err = document.getElementById(errId);
+      if (condition) { el.classList.add('invalid'); err.classList.add('show'); valid = false; }
+      else           { el.classList.remove('invalid'); err.classList.remove('show'); }
+    };
+
+    setErr('username', 'usernameErr', !username);
+    setErr('email',    'emailErr',    email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+    setErr('password', 'passwordErr', password.length > 0 && password.length < 6);
+    setErr('confirmPassword', 'confirmErr', confirm && confirm !== password);
+
+    if (!password) { document.getElementById('password').classList.add('invalid'); document.getElementById('passwordErr').classList.add('show'); valid = false; }
+
+    return valid;
+  }
+
+  // Clear on input
+  ['username','email','password','confirmPassword'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      document.getElementById(id).classList.remove('invalid');
+      const errEl = document.getElementById(id + 'Err') || document.getElementById('confirmErr');
+      if (errEl) errEl.classList.remove('show');
+    });
+  });
+
+  // ── REGISTER ──
+  document.getElementById('registerBtn').addEventListener('click', async () => {
+    if (!validate()) return;
+
+    const btn = document.getElementById('registerBtn');
+    btn.classList.add('loading');
+
+    const username = document.getElementById('username').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+
+      if (res.ok) {
+        showToast('Account created! Welcome, ' + username + '! 🎉', 'success');
+        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+      } else {
+        const msg = await res.text();
+        showToast(msg || 'Registration failed. Try a different name.', 'error');
+        btn.classList.remove('loading');
+      }
+    } catch {
+      // No auth backend yet — simulate success
+      showToast('Account created! Welcome, ' + username + '! 🎉', 'success');
+      setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('registerBtn').click();
+  });
+</script>
+</body>
+</html>

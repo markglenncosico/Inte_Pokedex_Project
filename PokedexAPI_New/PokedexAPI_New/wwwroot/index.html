@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pokédex</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1123; --nav-bg: #1a1f3c; --card-bg: #1e2340;
+      --card-border: #2e3560; --yellow: #f6c700; --red: #e63946;
+      --text: #e8eaf6; --muted: #7986cb; --radius: 14px;
+    }
+    body { background: var(--bg); font-family: 'Exo 2', sans-serif; color: var(--text); min-height: 100vh; }
+
+    nav {
+      background: var(--nav-bg); border-bottom: 2px solid var(--yellow);
+      padding: 0 32px; height: 68px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-family: 'Press Start 2P', monospace; font-size: 1.4rem; color: var(--yellow); text-shadow: 3px 3px 0 #7a5c00; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn-add { background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+    .btn-add:hover { background: #ff5a65; transform: translateY(-1px); }
+    .search-bar { background: #252b50; border: 1.5px solid var(--card-border); border-radius: 8px; padding: 9px 14px; color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 0.9rem; width: 200px; outline: none; transition: border-color 0.2s; }
+    .search-bar:focus { border-color: var(--yellow); }
+    .search-bar::placeholder { color: #5a6090; }
+
+    main { padding: 32px; max-width: 1100px; margin: 0 auto; }
+    .section-title { font-family: 'Press Start 2P', monospace; color: var(--yellow); font-size: 1rem; margin-bottom: 24px; text-shadow: 2px 2px 0 #7a5c00; }
+
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--card-border); background: transparent; color: #aab0d6; font-family: 'Exo 2', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.18s; text-transform: capitalize; }
+    .filter-btn:hover, .filter-btn.active { border-color: var(--yellow); color: var(--yellow); background: rgba(246,199,0,0.08); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+
+    .card { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius); padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; position: relative; animation: fadeUp 0.4s ease both; }
+    .card:hover { transform: translateY(-5px); border-color: var(--yellow); box-shadow: 0 8px 28px rgba(246,199,0,0.12); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .card-top { display: flex; justify-content: space-between; width: 100%; align-items: center; }
+    .card-number { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+    .btn-delete-card { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; transition: color 0.2s; }
+    .btn-delete-card:hover { color: var(--red); }
+    .card-name { font-size: 1rem; font-weight: 700; text-align: center; }
+    .card-img { width: 90px; height: 90px; image-rendering: pixelated; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.2s; }
+    .card:hover .card-img { transform: scale(1.1); }
+    .card-types { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+    .type-badge { padding: 3px 12px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; text-transform: capitalize; color: #fff; }
+    .type-fire{background:#e25822}.type-water{background:#2980b9}.type-grass{background:#27ae60}
+    .type-poison{background:#8e44ad}.type-electric{background:#f39c12;color:#000}
+    .type-psychic{background:#c0392b}.type-ice{background:#76d7ea;color:#000}
+    .type-dragon{background:#2c3e9e}.type-dark{background:#2c2c54}.type-fairy{background:#e84393}
+    .type-normal{background:#636e72}.type-fighting{background:#c0392b}.type-flying{background:#3498db}
+    .type-bug{background:#6ab04c}.type-rock{background:#7f8c8d}.type-ghost{background:#6c3483}
+    .type-steel{background:#95a5a6;color:#000}.type-ground{background:#d4a017}
+
+    .loader { text-align: center; padding: 60px; font-family: 'Press Start 2P', monospace; font-size: 0.7rem; color: var(--yellow); animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .load-more-wrap { text-align: center; margin-top: 36px; }
+    .btn-load { background: transparent; border: 2px solid var(--yellow); color: var(--yellow); border-radius: 8px; padding: 12px 32px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .btn-load:hover { background: var(--yellow); color: #000; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal { background: var(--nav-bg); border: 2px solid var(--yellow); border-radius: 18px; padding: 32px; width: 340px; max-width: 95vw; text-align: center; position: relative; animation: popIn 0.25s ease; }
+    .modal-close { position: absolute; top: 12px; right: 16px; background: none; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; }
+    .modal-close:hover { color: #fff; }
+    .modal-number { color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+    .modal-name { font-size: 1.5rem; font-weight: 700; margin: 4px 0 12px; }
+    .modal-img { width: 140px; height: 140px; image-rendering: pixelated; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5)); }
+    .modal-types { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+    .modal-stats { width: 100%; margin: 16px 0; }
+    .stat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .stat-label { font-size: 0.72rem; color: var(--muted); width: 80px; text-align: right; text-transform: uppercase; font-weight: 600; }
+    .stat-bar-bg { flex: 1; height: 8px; background: #2e3560; border-radius: 4px; overflow: hidden; }
+    .stat-bar { height: 100%; border-radius: 4px; background: var(--yellow); transition: width 0.6s ease; }
+    .stat-val { font-size: 0.75rem; font-weight: 700; width: 30px; }
+    .btn-update { background: transparent; border: 1.5px solid var(--yellow); color: var(--yellow); border-radius: 6px; padding: 8px 16px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; transition: background 0.2s, color 0.2s; }
+    .btn-update:hover { background: var(--yellow); color: #000; }
+
+    .add-modal { background: var(--nav-bg); border: 2px solid var(--yellow); border-radius: 18px; padding: 28px 32px; width: 420px; max-width: 95vw; max-height: 90vh; overflow-y: auto; position: relative; animation: popIn 0.25s ease; }
+    .add-modal::-webkit-scrollbar { width: 6px; }
+    .add-modal::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+    .add-modal h2 { font-family: 'Press Start 2P', monospace; color: var(--yellow); font-size: 0.8rem; margin-bottom: 20px; }
+    .form-section-title { font-size: 0.72rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: 1px; margin: 18px 0 10px; border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
+    .form-group input, .form-group select { width: 100%; background: #252b50; border: 1.5px solid var(--card-border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--yellow); }
+    .form-group select option { background: #1a1f3c; }
+    .types-row { display: flex; gap: 10px; }
+    .types-row .form-group { flex: 1; }
+    .stats-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .btn-submit { width: 100%; background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 12px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 6px; transition: background 0.2s; }
+    .btn-submit:hover { background: #ff5a65; }
+    .msg-success { color: #27ae60; font-size: 0.82rem; margin-top: 10px; text-align: center; }
+    .msg-error   { color: var(--red);   font-size: 0.82rem; margin-top: 10px; text-align: center; }
+
+    /* ── CUSTOM CONFIRM DIALOG ── */
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box {
+      background: #1a1f3c; border: 2px solid #e63946;
+      border-radius: 16px; padding: 28px 32px;
+      width: 340px; max-width: 95vw; text-align: center;
+      animation: popIn 0.25s ease;
+    }
+    .confirm-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .confirm-title { font-family: 'Press Start 2P', monospace; color: #fff; font-size: 0.7rem; margin-bottom: 10px; }
+    .confirm-msg { color: #aab0d6; font-size: 0.88rem; margin-bottom: 22px; line-height: 1.5; }
+    .confirm-name { color: #f6c700; font-weight: 700; }
+    .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+    .btn-confirm-yes { background: #e63946; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+    .btn-confirm-yes:hover { background: #ff5a65; }
+    .btn-confirm-no { background: transparent; color: #aab0d6; border: 1.5px solid #2e3560; border-radius: 8px; padding: 10px 24px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .btn-confirm-no:hover { border-color: #aab0d6; color: #fff; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1f3c; border: 1.5px solid #2e3560;
+      border-radius: 10px; padding: 12px 24px;
+      font-family: 'Exo 2', sans-serif; font-size: 0.9rem;
+      font-weight: 600; color: #fff; z-index: 999;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s;
+      opacity: 0; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { border-color: #27ae60; }
+    .toast.error   { border-color: #e63946; }
+    .toast.info    { border-color: #f6c700; }
+    .toast-icon { font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Pokédex</div>
+  <div class="nav-right">
+    <input class="search-bar" type="text" id="searchInput" placeholder="Search Pokémon…"/>
+    <button class="btn-add" id="openAddModal">+ Add Pokémon</button>
+  </div>
+</nav>
+
+<main>
+  <div class="section-title">Pokémon Grid</div>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-type="all">All</button>
+    <button class="filter-btn" data-type="fire">Fire</button>
+    <button class="filter-btn" data-type="water">Water</button>
+    <button class="filter-btn" data-type="grass">Grass</button>
+    <button class="filter-btn" data-type="electric">Electric</button>
+    <button class="filter-btn" data-type="psychic">Psychic</button>
+    <button class="filter-btn" data-type="ice">Ice</button>
+    <button class="filter-btn" data-type="dragon">Dragon</button>
+    <button class="filter-btn" data-type="dark">Dark</button>
+    <button class="filter-btn" data-type="fairy">Fairy</button>
+    <button class="filter-btn" data-type="normal">Normal</button>
+    <button class="filter-btn" data-type="fighting">Fighting</button>
+    <button class="filter-btn" data-type="bug">Bug</button>
+    <button class="filter-btn" data-type="rock">Rock</button>
+    <button class="filter-btn" data-type="ghost">Ghost</button>
+    <button class="filter-btn" data-type="flying">Flying</button>
+    <button class="filter-btn" data-type="steel">Steel</button>
+    <button class="filter-btn" data-type="ground">Ground</button>
+    <button class="filter-btn" data-type="poison">Poison</button>
+  </div>
+  <div id="loader" class="loader">Loading Pokémon…</div>
+  <div class="grid" id="grid"></div>
+  <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
+    <button class="btn-load" id="loadMore">Load More</button>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailOverlay">
+  <div class="modal">
+    <button class="modal-close" id="closeDetail">✕</button>
+    <div class="modal-number" id="dNum"></div>
+    <div class="modal-name" id="dName"></div>
+    <img class="modal-img" id="dImg" src="" alt=""/>
+    <div class="modal-types" id="dTypes"></div>
+    <div class="modal-stats" id="dStats"></div>
+    <button class="btn-update" id="openUpdateModal">Update Stats</button>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addOverlay">
+  <div class="add-modal">
+    <button class="modal-close" id="closeAdd">✕</button>
+    <h2>Add Pokémon</h2>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="addName" placeholder="e.g. Pikachu"/>
+    </div>
+    <div class="form-group">
+      <label>Sprite / Image URL <span style="color:#5a6090;font-size:0.7rem;">(optional)</span></label>
+      <input type="url" id="addSprite" placeholder="https://... or leave blank"/>
+    </div>
+    <div class="types-row">
+      <div class="form-group">
+        <label>Primary Type</label>
+        <select id="addType1">
+          <option value="">— Select —</option>
+          <option>fire</option><option>water</option><option>grass</option>
+          <option>electric</option><option>psychic</option><option>ice</option>
+          <option>dragon</option><option>dark</option><option>fairy</option>
+          <option>normal</option><option>fighting</option><option>flying</option>
+          <option>bug</option><option>rock</option><option>ghost</option>
+          <option>steel</option><option>ground</option><option>poison</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Secondary Type <span style="color:#5a6090;font-size:0.7rem;">(optional)</span></label>
+        <select id="addType2">
+          <option value="">— None —</option>
+          <option>fire</option><option>water</option><option>grass</option>
+          <option>electric</option><option>psychic</option><option>ice</option>
+          <option>dragon</option><option>dark</option><option>fairy</option>
+          <option>normal</option><option>fighting</option><option>flying</option>
+          <option>bug</option><option>rock</option><option>ghost</option>
+          <option>steel</option><option>ground</option><option>poison</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-section-title">Base Stats</div>
+    <div class="stats-edit-grid">
+      <div class="form-group"><label>HP</label><input type="number" id="addHp" min="1" max="255" placeholder="45"/></div>
+      <div class="form-group"><label>Attack</label><input type="number" id="addAtk" min="1" max="255" placeholder="49"/></div>
+      <div class="form-group"><label>Defense</label><input type="number" id="addDef" min="1" max="255" placeholder="49"/></div>
+      <div class="form-group"><label>Sp. Atk</label><input type="number" id="addSpAtk" min="1" max="255" placeholder="65"/></div>
+      <div class="form-group"><label>Sp. Def</label><input type="number" id="addSpDef" min="1" max="255" placeholder="65"/></div>
+      <div class="form-group"><label>Speed</label><input type="number" id="addSpd" min="1" max="255" placeholder="45"/></div>
+    </div>
+    <button class="btn-submit" id="addSubmit">Add to Pokédex</button>
+    <div id="addMsg"></div>
+  </div>
+</div>
+
+<!-- UPDATE STATS MODAL -->
+<div class="modal-overlay" id="updateOverlay">
+  <div class="add-modal">
+    <button class="modal-close" id="closeUpdate">✕</button>
+    <h2>Update Stats</h2>
+    <div class="stats-edit-grid">
+      <div class="form-group"><label>HP</label><input type="number" id="editHp" min="1" max="255"/></div>
+      <div class="form-group"><label>Attack</label><input type="number" id="editAtk" min="1" max="255"/></div>
+      <div class="form-group"><label>Defense</label><input type="number" id="editDef" min="1" max="255"/></div>
+      <div class="form-group"><label>Sp. Atk</label><input type="number" id="editSpAtk" min="1" max="255"/></div>
+      <div class="form-group"><label>Sp. Def</label><input type="number" id="editSpDef" min="1" max="255"/></div>
+      <div class="form-group"><label>Speed</label><input type="number" id="editSpd" min="1" max="255"/></div>
+    </div>
+    <button class="btn-submit" id="updateSubmit">Save Changes</button>
+    <div id="updateMsg"></div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete Pokémon?</div>
+    <div class="confirm-msg">Are you sure you want to remove <span class="confirm-name" id="confirmName"></span> from your Pokédex?</div>
+    <div class="confirm-actions">
+      <button class="btn-confirm-yes" id="confirmYes">Delete</button>
+      <button class="btn-confirm-no"  id="confirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  const API_URL = 'http://localhost:5000/api/pokemon';
+
+  let allPokemon     = [];
+  let filtered       = [];
+  let currentFilter  = 'all';
+  let searchQuery    = '';
+  let offset         = 0;
+  const PAGE         = 18;
+  let current        = null;
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function getTypes(p) {
+    return (p.type || '').split(/[\/,]/).map(t => t.trim().toLowerCase()).filter(Boolean);
+  }
+
+  function getSprite(p) {
+    return p.spriteUrl || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png`;
+  }
+
+  // ── TOAST ──
+  let toastTimer;
+  function showToast(msg, type = 'info') {
+    const toast = document.getElementById('toast');
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').textContent = icons[type] || 'ℹ️';
+    toast.className = `toast ${type}`;
+    clearTimeout(toastTimer);
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // ── CONFIRM DIALOG ──
+  let confirmCallback = null;
+  function showConfirm(name, onConfirm) {
+    document.getElementById('confirmName').textContent = name;
+    confirmCallback = onConfirm;
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+  document.getElementById('confirmYes').addEventListener('click', () => {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    if (confirmCallback) confirmCallback();
+    confirmCallback = null;
+  });
+  document.getElementById('confirmNo').addEventListener('click', () => {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    confirmCallback = null;
+  });
+
+  // ── LOAD ALL FROM BACKEND ──
+  async function loadAll() {
+    document.getElementById('loader').style.display = 'block';
+    try {
+      const res = await fetch(API_URL);
+      allPokemon = await res.json();
+    } catch {
+      document.getElementById('loader').textContent = 'Could not reach server.';
+      return;
+    }
+    document.getElementById('loader').style.display = 'none';
+    applyFilters();
+  }
+
+  function applyFilters() {
+    filtered = allPokemon.filter(p => {
+      const types = getTypes(p);
+      const matchType   = currentFilter === 'all' || types.includes(currentFilter);
+      const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchType && matchSearch;
+    });
+    offset = 0;
+    document.getElementById('grid').innerHTML = '';
+    renderPage();
+  }
+
+  function renderPage() {
+    const grid  = document.getElementById('grid');
+    const slice = filtered.slice(offset, offset + PAGE);
+    slice.forEach((p, i) => {
+      const card = buildCard(p);
+      card.style.animationDelay = `${i * 40}ms`;
+      grid.appendChild(card);
+    });
+    offset += PAGE;
+    document.getElementById('loadMoreWrap').style.display =
+      offset < filtered.length ? 'block' : 'none';
+  }
+
+  function buildCard(p) {
+    const types  = getTypes(p);
+    const sprite = getSprite(p);
+    const card   = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-number">#${String(p.id).padStart(3,'0')}</div>
+        <button class="btn-delete-card" title="Delete">✕</button>
+      </div>
+      <div class="card-name">${capitalize(p.name)}</div>
+      <img class="card-img" src="${sprite}" alt="${p.name}" loading="lazy"
+           onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png'"/>
+      <div class="card-types">
+        ${types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join('')}
+      </div>`;
+    card.querySelector('.btn-delete-card').addEventListener('click', e => {
+      e.stopPropagation();
+      deletePokemon(p);
+    });
+    card.addEventListener('click', () => openDetail(p));
+    return card;
+  }
+
+  // ── DELETE ──
+  async function deletePokemon(p) {
+    showConfirm(capitalize(p.name), async () => {
+      try {
+        const res = await fetch(`${API_URL}/${p.id}`, { method: 'DELETE' });
+        if (!res.ok) { showToast('Failed to delete.', 'error'); return; }
+        allPokemon = allPokemon.filter(x => x.id !== p.id);
+        if (current?.id === p.id) document.getElementById('detailOverlay').classList.remove('open');
+        applyFilters();
+        showToast(`${capitalize(p.name)} deleted!`, 'success');
+      } catch {
+        showToast('Could not reach server.', 'error');
+      }
+    });
+  }
+
+  // ── FILTERS ──
+  document.getElementById('filters').addEventListener('click', e => {
+    if (!e.target.classList.contains('filter-btn')) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.type;
+    applyFilters();
+  });
+
+  document.getElementById('searchInput').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    applyFilters();
+  });
+
+  document.getElementById('loadMore').addEventListener('click', renderPage);
+
+  // ── DETAIL MODAL ──
+  function openDetail(p) {
+    current = p;
+    const types  = getTypes(p);
+    const sprite = getSprite(p);
+    document.getElementById('dNum').textContent  = `#${String(p.id).padStart(3,'00')}`;
+    document.getElementById('dName').textContent = capitalize(p.name);
+    document.getElementById('dImg').src          = sprite;
+    document.getElementById('dTypes').innerHTML  = types.map(t =>
+      `<span class="type-badge type-${t}">${t}</span>`).join('');
+    renderModalStats(p);
+    document.getElementById('detailOverlay').classList.add('open');
+  }
+
+  function renderModalStats(p) {
+    const stats = [
+      { label: 'HP',    val: p.hp    },
+      { label: 'ATK',   val: p.atk   },
+      { label: 'DEF',   val: p.def   },
+      { label: 'SpATK', val: p.spAtk },
+      { label: 'SpDEF', val: p.spDef },
+      { label: 'SPD',   val: p.spd   },
+    ];
+    document.getElementById('dStats').innerHTML = stats.map(s => {
+      const pct = Math.min(100, ((s.val || 0) / 255) * 100);
+      return `
+        <div class="stat-row">
+          <div class="stat-label">${s.label}</div>
+          <div class="stat-bar-bg"><div class="stat-bar" style="width:${pct}%"></div></div>
+          <div class="stat-val">${s.val || 0}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('closeDetail').addEventListener('click', () =>
+    document.getElementById('detailOverlay').classList.remove('open'));
+  document.getElementById('detailOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('detailOverlay'))
+      document.getElementById('detailOverlay').classList.remove('open');
+  });
+
+  // ── ADD MODAL ──
+  document.getElementById('openAddModal').addEventListener('click', () => {
+    document.getElementById('addMsg').textContent = '';
+    ['addName','addSprite','addHp','addAtk','addDef','addSpAtk','addSpDef','addSpd'].forEach(id =>
+      document.getElementById(id).value = '');
+    document.getElementById('addType1').value = '';
+    document.getElementById('addType2').value = '';
+    document.getElementById('addOverlay').classList.add('open');
+  });
+  document.getElementById('closeAdd').addEventListener('click', () =>
+    document.getElementById('addOverlay').classList.remove('open'));
+  document.getElementById('addOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('addOverlay'))
+      document.getElementById('addOverlay').classList.remove('open');
+  });
+
+  document.getElementById('addSubmit').addEventListener('click', async () => {
+    const msgEl = document.getElementById('addMsg');
+    msgEl.textContent = '';
+    const name  = document.getElementById('addName').value.trim();
+    const type1 = document.getElementById('addType1').value;
+    const type2 = document.getElementById('addType2').value;
+    if (!name)  { msgEl.className = 'msg-error'; msgEl.textContent = 'Name is required.'; return; }
+    if (!type1) { msgEl.className = 'msg-error'; msgEl.textContent = 'Primary type is required.'; return; }
+    const payload = {
+      name, type: type2 ? `${type1}/${type2}` : type1,
+      spriteUrl: document.getElementById('addSprite').value.trim() || null,
+      hp:    parseInt(document.getElementById('addHp').value)    || 0,
+      atk:   parseInt(document.getElementById('addAtk').value)   || 0,
+      def:   parseInt(document.getElementById('addDef').value)   || 0,
+      spAtk: parseInt(document.getElementById('addSpAtk').value) || 0,
+      spDef: parseInt(document.getElementById('addSpDef').value) || 0,
+      spd:   parseInt(document.getElementById('addSpd').value)   || 0,
+      height: 0, weight: 0, description: '', isEncountered: true
+    };
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) { const e = await res.text(); msgEl.className = 'msg-error'; msgEl.textContent = `Error: ${e}`; return; }
+      const saved = await res.json();
+      allPokemon.push(saved);
+      document.getElementById('addOverlay').classList.remove('open');
+      applyFilters();
+      showToast(`${capitalize(name)} added!`, 'success');
+    } catch {
+      msgEl.className = 'msg-error'; msgEl.textContent = 'Could not reach server.';
+    }
+  });
+
+  // ── UPDATE STATS MODAL ──
+  document.getElementById('openUpdateModal').addEventListener('click', () => {
+    if (!current) return;
+    document.getElementById('editHp').value    = current.hp    || 0;
+    document.getElementById('editAtk').value   = current.atk   || 0;
+    document.getElementById('editDef').value   = current.def   || 0;
+    document.getElementById('editSpAtk').value = current.spAtk || 0;
+    document.getElementById('editSpDef').value = current.spDef || 0;
+    document.getElementById('editSpd').value   = current.spd   || 0;
+    document.getElementById('updateMsg').textContent = '';
+    document.getElementById('updateOverlay').classList.add('open');
+  });
+  document.getElementById('closeUpdate').addEventListener('click', () =>
+    document.getElementById('updateOverlay').classList.remove('open'));
+  document.getElementById('updateOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('updateOverlay'))
+      document.getElementById('updateOverlay').classList.remove('open');
+  });
+
+  document.getElementById('updateSubmit').addEventListener('click', async () => {
+    if (!current) return;
+    const msgEl = document.getElementById('updateMsg');
+    msgEl.textContent = '';
+    const payload = {
+      name: current.name, type: current.type,
+      spriteUrl: current.spriteUrl || null,
+      height: current.height || 0, weight: current.weight || 0,
+      description: current.description || '', isEncountered: true,
+      hp:    parseInt(document.getElementById('editHp').value)    || 0,
+      atk:   parseInt(document.getElementById('editAtk').value)   || 0,
+      def:   parseInt(document.getElementById('editDef').value)   || 0,
+      spAtk: parseInt(document.getElementById('editSpAtk').value) || 0,
+      spDef: parseInt(document.getElementById('editSpDef').value) || 0,
+      spd:   parseInt(document.getElementById('editSpd').value)   || 0,
+    };
+    try {
+      const res = await fetch(`${API_URL}/${current.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) { const e = await res.text(); msgEl.className = 'msg-error'; msgEl.textContent = `Error: ${e}`; return; }
+      const saved = await res.json();
+      const idx = allPokemon.findIndex(x => x.id === saved.id);
+      if (idx !== -1) allPokemon[idx] = saved;
+      current = saved;
+      renderModalStats(saved);
+      document.getElementById('updateOverlay').classList.remove('open');
+      showToast(`${capitalize(saved.name)} updated!`, 'success');
+    } catch {
+      msgEl.className = 'msg-error'; msgEl.textContent = 'Could not reach server.';
+    }
+  });
+
+  loadAll();
+</script>
+</body>
+</html>

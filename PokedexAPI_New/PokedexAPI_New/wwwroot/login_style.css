@@ -1,0 +1,126 @@
+/* Global Reset & Theme Colors matched to your app */
+:root {
+    --bg-main: #0d122b;       /* Deep dark blue background */
+    --bg-card: #1b2244;       /* Lighter blue card background */
+    --accent-yellow: #ffcb05; /* Pokédex yellow text */
+    --accent-red: #e63946;    /* Red from your "+ Add Pokémon" button */
+    --text-white: #ffffff;
+    --text-muted: #8b9bb4;
+}
+
+body.pokedex-body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: var(--bg-main);
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Center Container */
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Header Text Matching App Title */
+.login-header {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2rem;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+.brand-poke { color: var(--text-white); }
+.brand-dex { color: var(--accent-yellow); }
+
+/* Card Styling (Matches your Pokémon list grid items) */
+.login-card {
+    background-color: var(--bg-card);
+    border-radius: 15px;
+    padding: 35px 30px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+    color: var(--text-white);
+    margin-bottom: 25px;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+/* Form Inputs */
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    color: var(--accent-yellow);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 25px; /* Rounded pill style */
+    border: 2px solid transparent;
+    background-color: #0d122b;
+    color: var(--text-white);
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 8px rgba(255, 203, 5, 0.4);
+}
+
+/* Action Button */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent-red);
+    color: var(--text-white);
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    margin-top: 10px;
+}
+
+.btn-login:hover {
+    background-color: #c92a3a;
+}
+
+.btn-login:active {
+    transform: scale(0.98);
+}
+
+/* Footer Link */
+.card-footer {
+    margin-top: 20px;
+}
+
+.reg-link {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.reg-link:hover {
+    color: var(--accent-yellow);
+}
